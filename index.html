@@ -11,7 +11,7 @@
         h2 { text-align: center; margin-top: 0; color: #1a73e8; }
         .section { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e0e0e0; }
         .section-title { font-weight: bold; margin-bottom: 10px; display: block; color: #5f6368; }
-        select, input[type="text"] { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1em; }
+        select, input[type="text"], input[type="number"] { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1em; }
         button { width: 100%; padding: 12px; background-color: #1a73e8; color: white; border: none; border-radius: 6px; font-size: 1em; font-weight: bold; cursor: pointer; transition: background 0.2s; }
         button:hover { background-color: #1557b0; }
         .btn-delete { background-color: #d93025; margin-top: 5px; padding: 6px; font-size: 0.9em; }
@@ -33,6 +33,13 @@
         <button onclick="createNewEvent()">➕ Dodaj nowe wydarzenie</button>
         <button onclick="deleteCurrentEvent()" class="btn-delete">🗑️ Usuń to wydarzenie</button>
     </div>
+    
+    <!-- DODANE: Okienko do zmiany kwoty składki -->
+    <div class="section">
+        <span class="section-title">💰 Kwota składki (zł):</span>
+        <input type="number" id="event-price-input" value="25" min="0" oninput="updatePrice()">
+    </div>
+
     <h3 id="current-event-title" style="text-align: center; color: #3c4043;"></h3>
     <div id="people-list"></div>
     <div class="total">Suma: <span id="total-amount">0</span> zł</div>
@@ -46,12 +53,20 @@ const studentsList = [
     "Pięknoś", "Pustkowski", "Rząsa", "Sondej", "Wawrzaszek", 
     "B Woś", "W Woś", "Zdeb"
 ];
-const SKLADKA = 25;
+
 let appData = JSON.parse(localStorage.getItem('skarbnik_data')) || {
     currentEvent: "Ogólna składka",
-    events: { "Ogólna składka": [] }
+    events: { "Ogólna składka": { people: [], price: 25 } }
 };
+
+// Funkcja naprawiająca stare dane w pamięci przeglądarki, jeśli istniały
+if (appData.events["Ogólna składka"] && Array.isArray(appData.events["Ogólna składka"])) {
+    const oldPeople = appData.events["Ogólna składka"];
+    appData.events["Ogólna składka"] = { people: oldPeople, price: 25 };
+}
+
 function saveData() { localStorage.setItem('skarbnik_data', JSON.stringify(appData)); }
+
 function renderEventSelect() {
     const select = document.getElementById('event-select');
     select.innerHTML = '';
@@ -63,66 +78,106 @@ function renderEventSelect() {
         select.appendChild(option);
     });
 }
+
 function createNewEvent() {
     const nameInput = document.getElementById('new-event-name');
     const name = nameInput.value.trim();
     if(name === "") return alert("Wpisz nazwę!");
     if(appData.events[name]) return alert("Już istnieje!");
-    appData.events[name] = [];
+    
+    // Zapisujemy wydarzenie jako obiekt z listą ludzi i ceną
+    appData.events[name] = { people: [], price: 25 };
     appData.currentEvent = name;
     nameInput.value = "";
     saveData();
     renderEventSelect();
     loadCurrentEvent();
 }
+
 function deleteCurrentEvent() {
     const current = appData.currentEvent;
     if(Object.keys(appData.events).length <= 1) return alert("Musisz mieć min. jedno wydarzenie!");
     if(confirm(`Usunąć zbiórkę: "${current}"?`)) {
         delete appData.events[current];
-        appData.currentEvent = Object.keys(appData.events);
+        appData.currentEvent = Object.keys(appData.events)[0];
         saveData();
         renderEventSelect();
         loadCurrentEvent();
     }
 }
+
 function switchEvent() {
     appData.currentEvent = document.getElementById('event-select').value;
     saveData();
     loadCurrentEvent();
 }
-function loadCurrentEvent() {
-    document.getElementById('current-event-title').innerText = "Zbiórka: " + appData.currentEvent;
-    const container = document.getElementById('people-list');
-    container.innerHTML = '';
-    const paidPeople = appData.events[appData.currentEvent] || [];
-    studentsList.forEach((person, index) => {
-        const isChecked = paidPeople.includes(person) ? "checked" : "";
-        const div = document.createElement('div');
-        div.className = 'person';
-        div.innerHTML = `<label for="p-${index}"><input type="checkbox" id="p-${index}" class="payment-checkbox" data-name="${person}" ${isChecked} onchange="updatePayment(this)">${index + 1}. ${person} (${SKLADKA} zł)</label>`;
-        container.appendChild(div);
-    });
+
+// DODANE: Funkcja aktualizująca cenę w locie
+function updatePrice() {
+    const priceInput = document.getElementById('event-price-input');
+    let price = parseFloat(priceInput.value);
+    if (isNaN(price) || price < 0) price = 0;
+    
+    appData.events[appData.currentEvent].price = price;
+    saveData();
     calculateTotal();
 }
-function updatePayment(checkbox) {
-    const personName = checkbox.getAttribute('data-name');
-    let paidPeople = appData.events[appData.currentEvent];
-    if (checkbox.checked) {
-        if (!paidPeople.includes(personName)) paidPeople.push(personName);
+
+function togglePerson(name) {
+    const currentEventObj = appData.events[appData.currentEvent];
+    const index = currentEventObj.people.indexOf(name);
+    if (index === -1) {
+        currentEventObj.people.push(name);
     } else {
-        appData.events[appData.currentEvent] = paidPeople.filter(name => name !== personName);
+        currentEventObj.people.splice(index, 1);
     }
     saveData();
     calculateTotal();
 }
+
 function calculateTotal() {
-    const checkboxes = document.querySelectorAll('.payment-checkbox');
-    let count = 0;
-    checkboxes.forEach(checkbox => { if (checkbox.checked) count++; });
-    document.getElementById('total-amount').innerText = count * SKLADKA;
-    document.getElementById('total-stats').innerText = `Zaznaczono osób: ${count} z ${studentsList.length}`;
+    const currentEventObj = appData.events[appData.currentEvent];
+    const checkedCount = currentEventObj.people.length;
+    const price = currentEventObj.price || 0;
+    
+    document.getElementById('total-amount').innerText = (checkedCount * price).toFixed(2).replace('.00', '');
+    document.getElementById('total-stats').innerText = `Zaznaczono osób: ${checkedCount} z ${studentsList.length}`;
 }
+
+function loadCurrentEvent() {
+    document.getElementById('current-event-title').innerText = "Zbiórka: " + appData.currentEvent;
+    
+    // Pobranie danych obecnego wydarzenia i zabezpieczenie przed błędami struktury
+    if (!appData.events[appData.currentEvent].people) {
+        appData.events[appData.currentEvent] = { people: [], price: 25 };
+    }
+    
+    const currentEventObj = appData.events[appData.currentEvent];
+    
+    // Ustawienie ceny w polu input
+    document.getElementById('event-price-input').value = currentEventObj.price !== undefined ? currentEventObj.price : 25;
+    
+    const container = document.getElementById('people-list');
+    container.innerHTML = '';
+    
+    studentsList.forEach(student => {
+        const isChecked = currentEventObj.people.includes(student);
+        const personDiv = document.createElement('div');
+        personDiv.className = 'person';
+        
+        personDiv.innerHTML = `
+            <label>
+                <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="togglePerson('${student}')">
+                ${student}
+            </label>
+        `;
+        container.appendChild(personDiv);
+    });
+    
+    calculateTotal();
+}
+
+// Uruchomienie aplikacji przy starcie strony
 renderEventSelect();
 loadCurrentEvent();
 </script>
