@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skarbnik</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; }
+        .container { max-width: 400px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin: auto; }
+        .person { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding: 10px 0; border-bottom: 1px solid #eee; }
+        input[type="checkbox"] { transform: scale(1.5); cursor: pointer; margin-right: 10px; }
+        label { font-size: 1.1em; flex-grow: 1; }
+        .total { font-size: 1.6em; font-weight: bold; margin-top: 20px; color: #2c3e50; text-align: center; background: #e8f8f5; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Lista wpłat</h2>
+    
+    <div class="person">
+        <label>Osoba 1 (50 zł)</label>
+        <input type="checkbox" class="payment-checkbox" data-amount="50" onchange="calculateTotal()">
+    </div>
+    
+    <div class="person">
+        <label>Osoba 2 (100 zł)</label>
+        <input type="checkbox" class="payment-checkbox" data-amount="100" onchange="calculateTotal()">
+    </div>
+    
+    <div class="person">
+        <label>Osoba 3 (30 zł)</label>
+        <input type="checkbox" class="payment-checkbox" data-amount="30" onchange="calculateTotal()">
+    </div>
+
+    <div class="total">Suma: <span id="total-amount">0</span> zł</div>
+</div>
+
+<script>
+function calculateTotal() {
+    let total = 0;
+    const checkboxes = document.querySelectorAll('.payment-checkbox');
+    checkboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            total += parseFloat(checkbox.getAttribute('data-amount'));
+        }
+    });
+    document.getElementById('total-amount').innerText = total;
+}
+</script>
+
+</body>
+</html>
