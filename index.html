@@ -5,67 +5,185 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Skarbnik - Zarządzanie Składkami</title>
     <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --container-bg: #ffffff;
+            --text-color: #333;
+            --section-bg: #f8f9fa;
+            --section-border: #e0e0e0;
+            --section-title: #5f6368;
+            --input-bg: #ffffff;
+            --input-border: #ccc;
+            --input-color: #333;
+            --person-bg: #fff;
+            --person-border: #f0f0f0;
+            --event-title-color: #3c4043;
+            --total-bg: #e8f0fe;
+            --total-border: #aecbfa;
+            --total-color: #202124;
+            --stats-color: #5f6368;
+            --note-color: #70757a;
+            --gear-hover: #f1f3f4;
+            --progress-bg: #e0e0e0;
+            --progress-fill: #1a73e8;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --container-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --section-bg: #2d2d2d;
+            --section-border: #404040;
+            --section-title: #a0a0a0;
+            --input-bg: #2d2d2d;
+            --input-border: #555;
+            --input-color: #e0e0e0;
+            --person-bg: #252525;
+            --person-border: #333;
+            --event-title-color: #ffffff;
+            --total-bg: #1f385c;
+            --total-border: #2c5282;
+            --total-color: #ffffff;
+            --stats-color: #a0a0a0;
+            --note-color: #9aa0a6;
+            --gear-hover: #333333;
+            --progress-bg: #404040;
+            --progress-fill: #4285f4;
+        }
+
         * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; background-color: #f0f2f5; color: #333; }
-        .container { max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: auto; }
-        h2 { text-align: center; margin-top: 0; color: #1a73e8; }
-        .section { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e0e0e0; }
-        .section-title { font-weight: bold; margin-bottom: 10px; display: block; color: #5f6368; }
-        select, input[type="text"], input[type="number"] { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1em; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; background-color: var(--bg-color); color: var(--text-color); transition: background 0.3s, color 0.3s; }
+        .container { max-width: 500px; background: var(--container-bg); padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: auto; transition: background 0.3s; }
+        
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        h2 { text-align: center; margin: 0; color: #1a73e8; flex-grow: 1; }
+        .theme-btn { background: none; border: none; font-size: 1.4em; cursor: pointer; padding: 5px; width: auto; }
+        .theme-btn:hover { background: none; }
+
+        .section { background: var(--section-bg); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--section-border); transition: background 0.3s, border 0.3s; }
+        .section-title { font-weight: bold; margin-bottom: 10px; display: block; color: var(--section-title); }
+        
+        select, input[type="text"], input[type="number"] { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid var(--input-border); border-radius: 6px; font-size: 1em; background-color: var(--input-bg); color: var(--input-color); }
+        
         button { width: 100%; padding: 12px; background-color: #1a73e8; color: white; border: none; border-radius: 6px; font-size: 1em; font-weight: bold; cursor: pointer; transition: background 0.2s; }
         button:hover { background-color: #1557b0; }
         .btn-delete { background-color: #d93025; margin-top: 5px; padding: 6px; font-size: 0.9em; }
         .btn-delete:hover { background-color: #b31412; }
-        .person { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding: 12px; background: #fff; border: 1px solid #f0f0f0; border-radius: 6px; }
+        
+        .person { display: flex; flex-direction: column; margin-bottom: 8px; padding: 12px; background: var(--person-bg); border: 1px solid var(--person-border); border-radius: 6px; transition: background 0.3s, border 0.3s; }
+        .person-main { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+        
         input[type="checkbox"] { transform: scale(1.6); cursor: pointer; margin-right: 15px; }
-        label { font-size: 1.1em; flex-grow: 1; cursor: pointer; display: flex; align-items: center; }
-        .total { font-size: 1.5em; font-weight: bold; margin-top: 20px; color: #202124; text-align: center; background: #e8f0fe; padding: 15px; border-radius: 8px; border: 1px solid #aecbfa; }
-        .stats { font-size: 0.9em; color: #5f6368; text-align: center; margin-top: 5px; }
+        label { font-size: 1.1em; flex-grow: 1; cursor: pointer; display: flex; align-items: center; color: var(--text-color); }
+        
+        .btn-gear { background: none; border: none; font-size: 1.2em; cursor: pointer; padding: 5px 8px; border-radius: 4px; transition: background 0.2s; width: auto; color: inherit; }
+        .btn-gear:hover { background-color: var(--gear-hover); }
+        
+        .person-note { font-size: 0.85em; color: var(--note-color); margin-top: 6px; margin-left: 32px; font-style: italic; }
+        
+        .total { font-size: 1.4em; font-weight: bold; margin-bottom: 5px; color: var(--total-color); text-align: center; background: var(--total-bg); padding: 12px; border-radius: 8px; border: 1px solid var(--total-border); transition: background 0.3s, color 0.3s; }
+        .stats { font-size: 0.9em; color: var(--stats-color); text-align: center; margin-bottom: 12px; }
+
+        /* Style paska postępu */
+        .progress-container { width: 100%; background-color: var(--progress-bg); border-radius: 8px; height: 10px; margin-bottom: 5px; overflow: hidden; border: 1px solid var(--section-border); }
+        .progress-bar { height: 100%; width: 0%; background-color: var(--progress-fill); transition: width 0.4s ease; border-radius: 6px; }
+        .progress-text { font-size: 0.85em; font-weight: bold; text-align: center; margin-bottom: 15px; color: var(--text-color); }
+
+        /* Styl modala do edycji notatki */
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
+        .modal-content { background: var(--container-bg); padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .modal-content h3 { margin-top: 0; color: var(--text-color); }
+        .modal-buttons { display: flex; gap: 10px; margin-top: 15px; }
+        .modal-buttons button { flex: 1; }
+        .btn-secondary { background-color: #5f6368; }
+        .btn-secondary:hover { background-color: #484c50; }
     </style>
 </head>
-<body>
+<body data-theme="light">
 <div class="container">
-    <h2>📊 Skarbnik</h2>
-    <div class="section">
-        <span class="section-title">📅 Wybierz lub dodaj zbiórkę:</span>
-        <select id="event-select" onchange="switchEvent()"></select>
-        <input type="text" id="new-event-name" placeholder="Np. Prezent, Kino">
-        <button onclick="createNewEvent()">➕ Dodaj nowe wydarzenie</button>
-        <button onclick="deleteCurrentEvent()" class="btn-delete">🗑️ Usuń to wydarzenie</button>
+    <div class="header-top">
+        <h2>📊 Skarbnik</h2>
+        <button class="theme-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Zmień motyw">🌙</button>
     </div>
     
-    <!-- DODANE: Okienko do zmiany kwoty składki -->
     <div class="section">
-        <span class="section-title">💰 Kwota składki (zł):</span>
+        <span class="section-title"></span>
+        <select id="event-select" onchange="switchEvent()"></select>
+        <input type="text" id="new-event-name" placeholder="Np. Prezent, Kino">
+        <button onclick="createNewEvent()">✚</button>
+        <button onclick="deleteCurrentEvent()" class="btn-delete">✖</button>
+    </div>
+    
+    <div class="section">
+        <span class="section-title">💰 Kwota (zł):</span>
         <input type="number" id="event-price-input" value="25" min="0" oninput="updatePrice()">
     </div>
 
-    <h3 id="current-event-title" style="text-align: center; color: #3c4043;"></h3>
-    <div id="people-list"></div>
+    <!-- PODSUMOWANIE PRZENIESIONE NA GÓRĘ -->
     <div class="total">Suma: <span id="total-amount">0</span> zł</div>
     <div class="stats" id="total-stats">Zaznaczono osób: 0 z 23</div>
+    
+    <div class="progress-container">
+        <div id="progress-bar" class="progress-bar"></div>
+    </div>
+    <div class="progress-text" id="progress-text">Postęp: 0%</div>
+    <!-- KONIEC SEKCJI PODSUMOWANIA -->
+
+    <h3 id="current-event-title" style="text-align: center; color: var(--event-title-color); margin-top: 25px;"></h3>
+    <div id="people-list"></div>
 </div>
+
+<!-- Modal do edycji notatki -->
+<div id="note-modal" class="modal">
+    <div class="modal-content">
+        <h3 id="modal-person-name">Notatka dla: </h3>
+        <input type="text" id="modal-note-input" placeholder="Wpisz notatkę (np. zapłacił gotówką)...">
+        <div class="modal-buttons">
+            <button class="btn-secondary" onclick="closeNoteModal()">Anuluj</button>
+            <button onclick="saveNote()">Zapisz</button>
+        </div>
+    </div>
+</div>
+
 <script>
 const studentsList = [
-    "Buczak", "Dec", "Falandys", "Gielarowski", "Janusz", 
-    "Kieplin", "Kobylarz", "Kot", "Makarowski", "Mastellone", 
-    "Matuła", "Nizioł", "A Olechowski", "S Olechowski", "Piersiak", 
-    "Pięknoś", "Pustkowski", "Rząsa", "Sondej", "Wawrzaszek", 
-    "B Woś", "W Woś", "Zdeb"
+    "Damian Buczak", "Jakub Dec", "Krystian Falandys", "Michał Gielarowski", "Marek Janusz", 
+    "Jakub Kieplin", "Maks Kobylarz", "Szymon Kot", "Kacper Makarowski", "Simone Mastellone", 
+    "Kacper Matuła", "Bartek Nizioł", "Adrian Olechowski", "Szymon Olechowski", "Mateusz Piersiak", 
+    "Mikołaj Pięknoś", "Artur Pustkowski", "Kacper Rząsa", "Jakub Sondej", "Wiktor Wawrzaszek", 
+    "Bartek Woś", "Wojtek Woś", "Przemek Zdeb"
 ];
 
 let appData = JSON.parse(localStorage.getItem('skarbnik_data')) || {
     currentEvent: "Ogólna składka",
-    events: { "Ogólna składka": { people: [], price: 25 } }
+    events: { "Ogólna składka": { people: [], price: 25, notes: {} } }
 };
 
-// Funkcja naprawiająca stare dane w pamięci przeglądarki, jeśli istniały
-if (appData.events["Ogólna składka"] && Array.isArray(appData.events["Ogólna składka"])) {
-    const oldPeople = appData.events["Ogólna składka"];
-    appData.events["Ogólna składka"] = { people: oldPeople, price: 25 };
+if (!appData.events[appData.currentEvent].notes) {
+    Object.keys(appData.events).forEach(ev => {
+        if(!appData.events[ev].notes) appData.events[ev].notes = {};
+    });
 }
 
-function saveData() { localStorage.setItem('skarbnik_data', JSON.stringify(appData)); }
+let activeStudentForNote = null;
+
+function saveData() { 
+    localStorage.setItem('skarbnik_data', JSON.stringify(appData)); 
+}
+
+function setTheme(theme) {
+    document.body.setAttribute('data-theme', theme);
+    localStorage.setItem('skarbnik_theme', theme);
+    document.getElementById('theme-toggle-btn').innerText = theme === 'dark' ? '☀️' : '🌙';
+}
+
+function toggleTheme() {
+    const currentTheme = document.body.getAttribute('data-theme');
+    setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+}
+
+const savedTheme = localStorage.getItem('skarbnik_theme') || 'light';
+setTheme(savedTheme);
 
 function renderEventSelect() {
     const select = document.getElementById('event-select');
@@ -85,8 +203,7 @@ function createNewEvent() {
     if(name === "") return alert("Wpisz nazwę!");
     if(appData.events[name]) return alert("Już istnieje!");
     
-    // Zapisujemy wydarzenie jako obiekt z listą ludzi i ceną
-    appData.events[name] = { people: [], price: 25 };
+    appData.events[name] = { people: [], price: 25, notes: {} };
     appData.currentEvent = name;
     nameInput.value = "";
     saveData();
@@ -112,7 +229,6 @@ function switchEvent() {
     loadCurrentEvent();
 }
 
-// DODANE: Funkcja aktualizująca cenę w locie
 function updatePrice() {
     const priceInput = document.getElementById('event-price-input');
     let price = parseFloat(priceInput.value);
@@ -135,26 +251,67 @@ function togglePerson(name) {
     calculateTotal();
 }
 
+function openNoteModal(studentName) {
+    activeStudentForNote = studentName;
+    document.getElementById('modal-person-name').innerText = "Notatka dla: " + studentName;
+    const currentEventObj = appData.events[appData.currentEvent];
+    const currentNote = (currentEventObj.notes && currentEventObj.notes[studentName]) || "";
+    document.getElementById('modal-note-input').value = currentNote;
+    document.getElementById('note-modal').style.display = 'flex';
+    document.getElementById('modal-note-input').focus();
+}
+
+function closeNoteModal() {
+    document.getElementById('note-modal').style.display = 'none';
+    activeStudentForNote = null;
+}
+
+function saveNote() {
+    if (!activeStudentForNote) return;
+    const noteText = document.getElementById('modal-note-input').value.trim();
+    const currentEventObj = appData.events[appData.currentEvent];
+    
+    if (!currentEventObj.notes) {
+        currentEventObj.notes = {};
+    }
+    
+    if (noteText === "") {
+        delete currentEventObj.notes[activeStudentForNote];
+    } else {
+        currentEventObj.notes[activeStudentForNote] = noteText;
+    }
+    
+    saveData();
+    closeNoteModal();
+    loadCurrentEvent();
+}
+
 function calculateTotal() {
     const currentEventObj = appData.events[appData.currentEvent];
     const checkedCount = currentEventObj.people.length;
     const price = currentEventObj.price || 0;
+    const totalPossibleAmount = studentsList.length * price;
+    const currentAmount = checkedCount * price;
     
-    document.getElementById('total-amount').innerText = (checkedCount * price).toFixed(2).replace('.00', '');
+    document.getElementById('total-amount').innerText = currentAmount.toFixed(2).replace('.00', '');
     document.getElementById('total-stats').innerText = `Zaznaczono osób: ${checkedCount} z ${studentsList.length}`;
+
+    const percentage = studentsList.length > 0 ? Math.round((checkedCount / studentsList.length) * 100) : 0;
+    document.getElementById('progress-bar').style.width = percentage + '%';
+    document.getElementById('progress-text').innerText = `Postęp zbiórki: ${percentage}% (${currentAmount} zł / ${totalPossibleAmount} zł)`;
 }
 
 function loadCurrentEvent() {
     document.getElementById('current-event-title').innerText = "Zbiórka: " + appData.currentEvent;
     
-    // Pobranie danych obecnego wydarzenia i zabezpieczenie przed błędami struktury
     if (!appData.events[appData.currentEvent].people) {
-        appData.events[appData.currentEvent] = { people: [], price: 25 };
+        appData.events[appData.currentEvent].people = [];
+    }
+    if (!appData.events[appData.currentEvent].notes) {
+        appData.events[appData.currentEvent].notes = {};
     }
     
     const currentEventObj = appData.events[appData.currentEvent];
-    
-    // Ustawienie ceny w polu input
     document.getElementById('event-price-input').value = currentEventObj.price !== undefined ? currentEventObj.price : 25;
     
     const container = document.getElementById('people-list');
@@ -162,14 +319,19 @@ function loadCurrentEvent() {
     
     studentsList.forEach(student => {
         const isChecked = currentEventObj.people.includes(student);
+        const studentNote = currentEventObj.notes[student] || "";
         const personDiv = document.createElement('div');
         personDiv.className = 'person';
         
         personDiv.innerHTML = `
-            <label>
-                <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="togglePerson('${student}')">
-                ${student}
-            </label>
+            <div class="person-main">
+                <label>
+                    <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="togglePerson('${student}')">
+                    ${student}
+                </label>
+                <button class="btn-gear" onclick="openNoteModal('${student}')" title="Dodaj notatkę">⚙️</button>
+            </div>
+            ${studentNote ? `<div class="person-note">💬 ${studentNote}</div>` : ''}
         `;
         container.appendChild(personDiv);
     });
@@ -177,7 +339,6 @@ function loadCurrentEvent() {
     calculateTotal();
 }
 
-// Uruchomienie aplikacji przy starcie strony
 renderEventSelect();
 loadCurrentEvent();
 </script>
